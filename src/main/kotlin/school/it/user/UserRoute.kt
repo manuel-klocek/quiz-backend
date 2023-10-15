@@ -38,7 +38,7 @@ fun Routing.routeUser(
                 return@put
             }
 
-            val updated = userService.updateUserInfo(userDto.toUser())
+            val updated = userService.updateUser(userDto.toUser())
 
             if(!updated) {
                 call.respond(HttpStatusCode.BadRequest, "User could not be updated or wasn't found")

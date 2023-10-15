@@ -14,13 +14,12 @@ enum class UserType {
 data class User (
     @BsonId
     var id: ObjectId? = null,
-    val type: UserType = UserType.PLAYER,
-    val username: String,
-    var password: String,
-    var createdAt: LocalDateTime = LocalDateTime.now(),
-    var lastModifiedAt: LocalDateTime = LocalDateTime.now(),
-    val mail: String,
-    var quizApiToken: String? = null,
+    val type: UserType? = UserType.PLAYER,
+    val username: String? = null,
+    var password: String? = null,
+    var createdAt: LocalDateTime? = LocalDateTime.now(),
+    var lastModifiedAt: LocalDateTime? = LocalDateTime.now(),
+    val mail: String? = null,
     var highscore: Int? = null,
     var sessionToken: String? = null,
     var answeredQuestionIds: List<String>? = null
@@ -58,7 +57,7 @@ fun UserDto.toAdmin(): User =
     )
 
 fun User.encodePass() {
-    this.password = Helper.encodePass(this.password)
+    this.password = Helper.encodePass(this.password!!)
 }
 
 fun User.creation() {

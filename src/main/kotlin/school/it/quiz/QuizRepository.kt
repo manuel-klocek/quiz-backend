@@ -1,7 +1,7 @@
 package school.it.quiz
 
-import com.mongodb.client.model.IndexOptions
-import com.mongodb.client.model.Indexes
+import mu.KotlinLogging
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.litote.kmongo.KMongo
 import org.litote.kmongo.eq
@@ -13,28 +13,35 @@ class QuizRepository {
     private val client = KMongo.createClient()
     private val database = client.getDatabase("Quiz")
     private val quizCollection = database.getCollection<Question>()
-
-    init {
-        quizCollection.createIndex(Indexes.ascending(Question::question.name), IndexOptions().unique(true))
-    }
-
-    fun insertAndGet(questions: List<Question>): List<Question> {
-        val found = mutableListOf<Question>()
-
-        questions.forEach {
-            try {
-                quizCollection.insertOne(it)
-            } catch (_: Exception) { }
-
-            found.add(quizCollection.findOne(Question::question eq it.question)!!)
-        }
-
-        return found
-    }
+    private val log = KotlinLogging.logger {}
 
     fun getQuestions(answers: List<QuestionAnswer>): List<Question> {
         val questions = mutableListOf<Question>()
-        answers.forEach { quizCollection.findOne(Question::id eq ObjectId(it.questionId)) }
+        answers.forEach { questions.add(quizCollection.findOne(Question::id eq ObjectId(it.questionId))!!) }
         return questions
+    }
+
+    fun deleteAllAndInsertNewQuestions(questions: List<Question>) {
+        if(questions.isEmpty()) return
+
+        log.info("Dropping Database to reload Questions from Api")
+        quizCollection.drop()
+        log.info("Inserting ${questions.size} Questions")
+        quizCollection.insertMany(questions)
+        log.info("Inserting successful")
+    }
+
+    fun getQuestionsForCategoryExcept(categoryId: String, answeredIds: List<String>? = listOf(), amount: Int): List<Question> {
+        var filter = Document()
+        if(!answeredIds.isNullOrEmpty())
+            filter = Document("_id", Document("\$nin", answeredIds))
+
+        filter.append("categoryId", categoryId)
+
+        return quizCollection.find(filter).toList().shuffled().take(amount)
+    }
+
+    fun getQuestionCount(): Long {
+        return quizCollection.countDocuments()
     }
 }

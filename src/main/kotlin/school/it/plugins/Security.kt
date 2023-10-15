@@ -18,21 +18,31 @@ import school.it.user.UserService
 import java.time.Instant
 import java.time.LocalDateTime
 import java.util.*
+import mu.KotlinLogging
+import school.it.helper.Helper
 
 fun Application.configureSecurity() {
+    val log = KotlinLogging.logger {}
+
     install(Authentication) {
         jwt("jwt-player") {
             realm = "Player Access to Api"
-            verifier(
-                JWT
-                    .require(Algorithm.HMAC512(JwtUtil.secret))
-                    .withAudience("/api/**")
-                    .withIssuer("http://localhost:8080")
-                    .build()
-            )
+            try {
+                verifier(
+                    JWT
+                        .require(Algorithm.HMAC512(JwtUtil.secret))
+                        .withAudience("/api/**")
+                        .withIssuer("http://localhost:8080")
+                        .build()
+                )
+            } catch (_: Exception) {
+                log.error("Authentication: Token decryption failed with secret")
+            }
+
             validate { credential ->
                 JWTPrincipal(credential.payload)
             }
+
             challenge { _, _ ->
                 call.respond(HttpStatusCode.Unauthorized, "Token is not valid or expired!")
             }
@@ -40,14 +50,18 @@ fun Application.configureSecurity() {
 
         jwt("jwt-admin") {
             realm = "Admin Access to Api"
-            verifier(
-                JWT
-                    .require(Algorithm.HMAC512(JwtUtil.secret))
-                    .withAudience("/**")
-                    .withIssuer("http://localhost:8080")
-                    .withClaim("permission", "Access to complete Api")
-                    .build()
-            )
+            try {
+                verifier(
+                    JWT
+                        .require(Algorithm.HMAC512(JwtUtil.secret))
+                        .withAudience("/**")
+                        .withIssuer("http://localhost:8080")
+                        .withClaim("permission", "Access to complete Api")
+                        .build()
+                )
+            } catch (_: Exception) {
+                log.error("Authentication: Token decryption failed with secret")
+            }
             validate { credential ->
                 JWTPrincipal(credential.payload)
             }

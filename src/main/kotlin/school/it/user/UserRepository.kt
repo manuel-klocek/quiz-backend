@@ -5,14 +5,20 @@ import com.mongodb.MongoException
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.client.result.UpdateResult
+import mu.KotlinLogging
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.litote.kmongo.*
+import school.it.helper.Helper
+import school.it.quiz.QuestionAnswer
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
 class UserRepository {
     private val client = KMongo.createClient()
     private val database = client.getDatabase("Quiz")
     private val userCollection = database.getCollection<User>()
+    private val log = KotlinLogging.logger {}
 
     init {
         userCollection.createIndex(Indexes.ascending(User::username.name), IndexOptions().unique(true))
@@ -21,10 +27,10 @@ class UserRepository {
     fun insert(user: User): Boolean {
         return try {
             userCollection.insertOne(user)
-            println("Inserted User: $user")
+            log.info("Inserted User: $user")
             true
         } catch (ignored: MongoException) {
-            println("Insert failed, User already exists!")
+            log.error("Insert failed, User already exists!")
             false
         }
     }
@@ -33,24 +39,21 @@ class UserRepository {
         return userCollection.findOne(User::id eq ObjectId(id))!!
     }
 
-    fun updateHighscore(id: String, score: Int): UpdateResult {
-        val updateFields = BasicDBObject(User::highscore.name, score)
-        return userCollection.updateOne(User::id eq ObjectId(id), BasicDBObject("\$set", updateFields))
-    }
-
-    fun updateUserInfo(user: User): UpdateResult {
-        println("Started Update with Values: $user")
+    fun updateUser(user: User): UpdateResult {
         user.modify()
-        user.encodePass()
-
         val updateFields = BasicDBObject()
-        updateFields.append(User::username.name, user.username)
-        updateFields.append(User::password.name, user.password)
-        updateFields.append(User::mail.name, user.mail)
-        updateFields.append(User::lastModifiedAt.name, user.lastModifiedAt)
-        val updateDoc = BasicDBObject("\$set", updateFields)
+        val propsToBeSkipped = listOf(User::id.name, User::createdAt.name)
 
-        return userCollection.updateOne(User::id eq user.id, updateDoc)
+        User::class.memberProperties.forEach {
+            val prop = it.name
+            val value = it.get(user)
+            if(value != null && !propsToBeSkipped.contains(prop)) {
+                log.info("Updating User: ${user.id}, with: $prop = $value")
+                updateFields.append(prop, value)
+            }
+        }
+
+        return userCollection.updateOne(User::id eq user.id, BasicDBObject("\$set", updateFields))
     }
 
     fun findByUsername(name: String): User? {
@@ -63,21 +66,22 @@ class UserRepository {
 
     fun updateSessionTokenByUsername(name: String, token: String): UpdateResult {
         val updateDoc = BasicDBObject("\$set", Document(User::sessionToken.name, token))
-        println("Storing Session-Token, for User: $name")
+        log.info("Storing Session-Token, for User: $name")
 
         return userCollection.updateOne(User::username eq name, updateDoc)
     }
 
-    fun getApiTokenByUserId(id: ObjectId): String? {
-        return userCollection.findOne(User::id eq id)!!.quizApiToken
+    fun getAnsweredIds(userId: String): List<String>? {
+        return userCollection.findOne(User::id eq ObjectId(userId))!!.answeredQuestionIds
     }
 
-    fun updateApiTokenByUserId(id: String, token: String) {
-        val updateFields = BasicDBObject()
-        updateFields.append(User::quizApiToken.name, token)
-        val updateDoc = BasicDBObject("\$set", updateFields)
-        println("Storing Api-Token, for User with Id: $id")
-
-        userCollection.updateOne(User::id eq ObjectId(id), updateDoc)
+    fun addAnsweredIds(userId: String, answerIds: List<String>): UpdateResult {
+        val user = userCollection.findOne(User::id eq ObjectId(userId))!!
+        user.modify()
+        if(user.answeredQuestionIds.isNullOrEmpty())
+            user.answeredQuestionIds = answerIds
+        else
+            user.answeredQuestionIds?.toMutableList()?.addAll(answerIds)
+        return userCollection.updateOne(User::id eq ObjectId(userId), user)
     }
 }

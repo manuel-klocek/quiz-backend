@@ -6,10 +6,13 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import mu.KotlinLogging
 import org.mindrot.jbcrypt.BCrypt
 import school.it.quiz.Question
 
 object Helper {
+    private val log = KotlinLogging.logger {}
+
     fun encodePass(password: String): String {
         return BCrypt.hashpw(password, BCrypt.gensalt())
     }
@@ -18,12 +21,13 @@ object Helper {
         return BCrypt.checkpw(password, hashedPassword)
     }
 
-    fun mapQuestionsFromJson(jsonArr: JsonArray): List<Question> {
+    fun mapQuestionsFromJson(jsonArr: JsonArray, categoryId: String): List<Question> {
         val questionDtos = mutableListOf<Question>()
         jsonArr.forEach { element ->
             val question = element.jsonObject
             questionDtos.add(
                 Question(
+                    categoryId = categoryId,
                     category = question["category"]!!.jsonPrimitive.content.decodeBase64String(),
                     type = question["type"]!!.jsonPrimitive.content.decodeBase64String(),
                     difficulty = question["difficulty"]!!.jsonPrimitive.content.decodeBase64String(),
@@ -33,6 +37,7 @@ object Helper {
                 )
             )
         }
+        log.info("Mapped and decoded Json-Body, result: $questionDtos")
         return questionDtos
     }
 }

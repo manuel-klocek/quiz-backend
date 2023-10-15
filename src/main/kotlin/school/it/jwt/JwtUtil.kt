@@ -7,19 +7,29 @@ import java.lang.Exception
 import java.security.SecureRandom
 import java.time.Instant
 import java.util.*
+import mu.KLogger
+import mu.KotlinLogging
+import school.it.helper.Helper
 
 object JwtUtil {
-    var secret: String = generateSecret()
+    var secret: String
+    private val log: KLogger = KotlinLogging.logger {}
+
+    init {
+        secret = generateSecret()
+    }
 
     private fun generateSecret(): String {
         val random = SecureRandom()
         val secretBytes = ByteArray(64)
         random.nextBytes(secretBytes)
-         return Base64.getUrlEncoder().withoutPadding().encodeToString(secretBytes)
+        val generatedSecret = Base64.getUrlEncoder().withoutPadding().encodeToString(secretBytes)
+        log.warn("Generated Secret: $generatedSecret")
+        return generatedSecret
     }
 
     fun generateToken(userId: String, username: String, issuer: String, audience: String, isAdmin: Boolean = false): String {
-        ("Generating token for $username and expires at ${Date.from(Instant.now().plusSeconds(84000))} as Admin: $isAdmin")
+        log.info("Generating token for $username and expires at ${Date.from(Instant.now().plusSeconds(84000))} as Admin: $isAdmin")
 
         val rawJwt = JWT.create()
             .withAudience(audience)
@@ -40,7 +50,7 @@ object JwtUtil {
         try {
             jwt = JWT.require(Algorithm.HMAC512(secret)).build().verify(token)
         } catch (_: Exception) {
-            println("Token was created with another secret -> New generated Token is required")
+            log.info("Token was created with another secret -> New generated Token is required")
             return false
         }
 

@@ -39,6 +39,8 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync:4.10.2")
     implementation("org.litote.kmongo:kmongo:$kmongo_version")
     implementation("org.mindrot:jbcrypt:0.4")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+    implementation("ch.qos.logback:logback-classic:1.4.11")
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.0")
 
     testImplementation("io.ktor:ktor-server-tests-jvm")

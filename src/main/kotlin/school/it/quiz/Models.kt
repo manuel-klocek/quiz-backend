@@ -8,6 +8,7 @@ import org.bson.types.ObjectId
 data class Question(
     @BsonId
     val id: ObjectId? = null,
+    var categoryId: String,
     var category: String,
     var type: String,
     var difficulty: String,

@@ -1,16 +1,17 @@
 package school.it.user
 
-import org.bson.types.ObjectId
+import mu.KotlinLogging
 import school.it.helper.Helper
 import school.it.jwt.JwtUtil
 
 class UserService (private val userRepository: UserRepository) {
+    private val log = KotlinLogging.logger {}
 
     fun saveUser(user: User): Boolean {
         user.encodePass()
         user.creation()
 
-        println("Saving User: $user")
+        log.info("Saving User: $user")
 
         return userRepository.insert(user)
     }
@@ -19,26 +20,14 @@ class UserService (private val userRepository: UserRepository) {
         return userRepository.findById(id)
     }
 
-    fun updateHighscore(userId: String, score: Int): Boolean {
-        return userRepository.updateHighscore(userId, score).modifiedCount == 1L
-    }
-
-    fun updateUserInfo(user:User): Boolean {
-        return userRepository.updateUserInfo(user).modifiedCount == 1L
+    fun updateUser(user: User): Boolean {
+        return userRepository.updateUser(user).modifiedCount == 1L
     }
 
 
     fun checkUserCredentials(login: Login): Boolean {
         val found = userRepository.findByUsername(login.username) ?: return false
-        return Helper.checkPass(login.password, found.password)
-    }
-
-    fun getExistingApiTokenByUserId(id: String): String? {
-        return userRepository.getApiTokenByUserId(ObjectId(id))
-    }
-
-    fun saveApiToken(userId: String, token: String) {
-        userRepository.updateApiTokenByUserId(userId, token)
+        return Helper.checkPass(login.password, found.password!!)
     }
 
     fun getExistingSessionToken(name: String): String? {
@@ -50,12 +39,20 @@ class UserService (private val userRepository: UserRepository) {
 
         val token = JwtUtil.generateToken(
             userId = user.id.toString(),
-            username = user.username,
+            username = user.username!!,
             issuer = "http://localhost:8080",
             audience = "/api/**",
             isAdmin = user.type == UserType.ADMIN
         )
-        userRepository.updateSessionTokenByUsername(user.username, token)
+        userRepository.updateSessionTokenByUsername(name, token)
         return token
+    }
+
+    fun getAnsweredQuestionIds(userId: String): List<String>? {
+        return userRepository.getAnsweredIds(userId)
+    }
+
+    fun addAnsweredQuestionsToUser(userId: String, answerIds: List<String>): Boolean {
+        return userRepository.addAnsweredIds(userId, answerIds).modifiedCount == 1L
     }
 }
