@@ -20,6 +20,7 @@ data class Question(
 @Serializable
 data class QuestionDto(
     val id: String? = null,
+    val categoryId: String,
     val category: String,
     val type: String,
     val difficulty: String,
@@ -37,6 +38,7 @@ data class QuestionAnswer(
 fun Question.toDto() =
     QuestionDto(
         this.id.toString(),
+        this.categoryId,
         this.category,
         this.type,
         this.difficulty,
@@ -44,3 +46,9 @@ fun Question.toDto() =
         this.correctAnswer,
         this.incorrectAnswers
     )
+
+@Serializable
+data class Category(
+    val categoryId: String,
+    val categoryName: String
+)

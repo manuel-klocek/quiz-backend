@@ -24,8 +24,13 @@ class QuizRepository {
     fun deleteAllAndInsertNewQuestions(questions: List<Question>) {
         if(questions.isEmpty()) return
 
-        log.info("Dropping Database to reload Questions from Api")
-        quizCollection.drop()
+        try {
+            log.info("Dropping Database to reload Questions from Api")
+            quizCollection.drop()
+        } catch (_: Exception) {
+            log.info("Dropping of collection failed -> this collection might not exist anymore")
+            log.warn("Code execution will continue!")
+        }
         log.info("Inserting ${questions.size} Questions")
         quizCollection.insertMany(questions)
         log.info("Inserting successful")
@@ -43,5 +48,15 @@ class QuizRepository {
 
     fun getQuestionCount(): Long {
         return quizCollection.countDocuments()
+    }
+
+    fun getCategories(): List<Category> {
+        val categoryIds = quizCollection.distinct("categoryId", String::class.java)
+        val categories = mutableListOf<Category>()
+        categoryIds.forEach{
+            val question = quizCollection.find(Question::categoryId eq it).first()
+            categories.add(Category(it, question!!.category))
+        }
+        return categories
     }
 }

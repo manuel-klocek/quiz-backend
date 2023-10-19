@@ -9,6 +9,8 @@ import io.ktor.utils.io.errors.IOException
 import kotlinx.serialization.json.*
 import school.it.helper.Helper
 import java.time.Instant
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.bson.Document
@@ -37,10 +39,11 @@ class QuizService(
         val questions = mutableListOf<Question>()
 
         categories.forEach {
-            questions.addAll(fetchQuestions(
-                category = it.keys.toList()[0],
-                questionNum = it.values.toList()[0].toString().toInt(),
-                apiToken = apiToken
+            questions.addAll(
+                fetchQuestions(
+                    category = it.keys.toList()[0],
+                    questionNum = it.values.toList()[0].toString().toInt(),
+                    apiToken = apiToken
                 )
             )
         }
@@ -143,5 +146,9 @@ class QuizService(
 
     fun getQuestionsForCategoryExcept(answeredIds: List<String>?, categoryId: String, amount: Int = 10): List<Question> {
         return quizRepository.getQuestionsForCategoryExcept(categoryId, answeredIds, amount)
+    }
+
+    fun getCategories(): List<Category> {
+        return quizRepository.getCategories()
     }
 }

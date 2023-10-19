@@ -39,9 +39,15 @@ fun Routing.routeQuiz(
 
             call.respond(HttpStatusCode.OK, questionDtos)
         }
-    }
 
-    authenticate("jwt-player") {
+        //get available categories
+        get("/api/categories") {
+            val categories = quizService.getCategories()
+
+            call.respond(categories)
+        }
+
+        //send answers to Backend
         post("/api/answers") {
             val userId = call.principal<JWTPrincipal>()!!.payload.subject
             val answers = call.receive<List<QuestionAnswer>>()
