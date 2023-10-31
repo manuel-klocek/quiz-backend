@@ -1,7 +1,5 @@
 applications:
   - name: dev-quizme-backend
-    services:
-      - name: dev-quizme-backend-db
     memory: 1G
     path: build/libs/quiz-backend-all.jar
     env:
