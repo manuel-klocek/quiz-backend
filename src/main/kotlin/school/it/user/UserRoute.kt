@@ -12,9 +12,30 @@ import school.it.jwt.JwtUtil
 fun Routing.routeUser(
     userService: UserService
 ) {
-    //create User
+    post("/api/login") {
+        val login = call.receive<Login>()
+
+        if(!userService.checkUserCredentials(login)) {
+            call.respond(HttpStatusCode.Unauthorized, "Credentials dont match")
+            return@post
+        }
+
+        var token = userService.getExistingSessionToken(login.username)
+
+        if(token == null || !JwtUtil.validateToken(token))
+        {
+            token = userService.generateAndStoreSessionTokenForUser(login.username)
+        }
+
+        call.respond(HttpStatusCode.Created, hashMapOf("token" to token))
+    }
+
     post("/api/user") {
         val userDto = call.receive<UserDto>()
+
+        //Make sure user can't set these values on request per api
+        userDto.highscore = 0
+        userDto.totallyAnsweredQuestions = 0
 
         if(userService.saveUser(userDto.toUser()))
             call.respond(HttpStatusCode.Created)
@@ -22,8 +43,33 @@ fun Routing.routeUser(
             call.respond(HttpStatusCode.Conflict, "User could not be created")
     }
 
-    //update User
     authenticate("jwt-player") {
+        get("/api/user-info") {
+            val requestId = call.principal<JWTPrincipal>()!!.payload.subject
+
+            val userDto = userService.getUserById(requestId)
+
+            if (userDto == null) {
+                call.respond(HttpStatusCode.BadRequest, "User not found")
+                return@get
+            }
+
+            call.respond(hashMapOf("user-info" to userDto))
+        }
+
+        get("/api/scoreboard") {
+
+            val pageNumber = (call.parameters["pageNumber"] ?: "0").toInt()
+            val pageSize = (call.parameters["pageSize"] ?: "10").toInt()
+
+            val users = userService.getUsersForScoreboard(pageNumber, pageSize)
+            val userDtos = mutableListOf<UserDto>()
+
+            users.forEach { userDtos.add(it.toResponseDto()) }
+
+            call.respond(userDtos)
+        }
+
         put("/api/user") {
             val userDto = call.receive<UserDto>()
             val requesterId = call.principal<JWTPrincipal>()!!.payload.subject
@@ -47,9 +93,16 @@ fun Routing.routeUser(
 
             call.respond(HttpStatusCode.Accepted)
         }
+
+        delete("/api/logout") {
+            val userId = call.principal<JWTPrincipal>()!!.payload.subject
+
+            userService.deleteSessionToken(userId)
+
+            call.respond(HttpStatusCode.OK)
+        }
     }
 
-    //create Admin Users
     authenticate("jwt-admin") {
         post("/api/user") {
             val adminDto = call.receive<UserDto>()
@@ -61,24 +114,5 @@ fun Routing.routeUser(
             else
                 call.respond(HttpStatusCode.Created)
         }
-    }
-
-    //login endpoint
-    post("/api/login") {
-        val login = call.receive<Login>()
-
-        if(!userService.checkUserCredentials(login)) {
-            call.respond(HttpStatusCode.Unauthorized, "Credentials dont match")
-            return@post
-        }
-
-        var token = userService.getExistingSessionToken(login.username)
-
-        if(token == null || !JwtUtil.validateToken(token))
-        {
-            token = userService.generateAndStoreSessionTokenForUser(login.username)
-        }
-
-        call.respond(HttpStatusCode.Created, hashMapOf("token" to token))
     }
 }

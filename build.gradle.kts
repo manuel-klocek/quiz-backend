@@ -41,6 +41,7 @@ dependencies {
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("ch.qos.logback:logback-classic:1.4.11")
+    implementation("io.ktor:ktor-server-cors-jvm:2.3.5")
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.0")
 
     testImplementation("io.ktor:ktor-server-tests-jvm")

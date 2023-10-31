@@ -9,10 +9,7 @@ import mu.KotlinLogging
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.litote.kmongo.*
-import school.it.helper.Helper
-import school.it.quiz.QuestionAnswer
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType
 
 class UserRepository {
     private val client = KMongo.createClient()
@@ -22,6 +19,11 @@ class UserRepository {
 
     init {
         userCollection.createIndex(Indexes.ascending(User::username.name), IndexOptions().unique(true))
+        userCollection.createIndex(Indexes.descending(User::highscore.name), IndexOptions().unique(false))
+
+        val admin = User(type = UserType.ADMIN, username = "admin", password = "admin", mail = "admin.local@quiz.me")
+
+        insert(admin)
     }
 
     fun insert(user: User): Boolean {
@@ -35,8 +37,13 @@ class UserRepository {
         }
     }
 
-    fun findById(id: String): User {
-        return userCollection.findOne(User::id eq ObjectId(id))!!
+    fun findById(id: String): User? {
+        return userCollection.findOne(User::id eq ObjectId(id))
+    }
+
+    fun getUsersForHighscore(pageNumber: Int, pageSize: Int): List<User> {
+        val skip = (pageNumber - 1) * pageSize
+        return userCollection.find().hint(Indexes.descending(User::highscore.name)).skip(skip).limit(pageSize).toList()
     }
 
     fun updateUser(user: User): UpdateResult {
@@ -83,5 +90,10 @@ class UserRepository {
         else
             user.answeredQuestionIds?.toMutableList()?.addAll(answerIds)
         return userCollection.updateOne(User::id eq ObjectId(userId), user)
+    }
+
+    fun deleteSessionToken(userId: String): UpdateResult {
+        val updateDoc = Document("\$set", Document(User::sessionToken.name, ""))
+        return userCollection.updateOne(User::id eq ObjectId(userId), updateDoc)
     }
 }

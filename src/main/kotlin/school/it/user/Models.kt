@@ -24,12 +24,13 @@ data class User (
     var sessionToken: String? = null,
     var answeredQuestionIds: List<String>? = null
 )
-
 @Serializable
 data class UserDto(
     val id: String? = null,
     val username: String,
-    val password: String,
+    val password: String? = null,
+    var highscore: Int? = null,
+    var totallyAnsweredQuestions: Int? = null,
     val mail: String
 )
 
@@ -42,7 +43,7 @@ data class Login(
 fun UserDto.toUser(): User =
     User(
         id = returnIdOrNull(this.id),
-        username = this.username,
+        username = this.username.trim(),
         password = this.password,
         mail = this.mail
     )
@@ -69,6 +70,14 @@ fun User.creation() {
 fun User.modify() {
     this.lastModifiedAt = LocalDateTime.now()
 }
+
+fun User.toResponseDto() =
+    UserDto(
+        id = this.id.toString(),
+        username = this.username!!,
+        highscore = this.highscore,
+        mail = this.mail ?: ""
+    )
 
 private fun returnIdOrNull(id: String?): ObjectId? {
     return try {

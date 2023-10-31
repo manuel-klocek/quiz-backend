@@ -29,14 +29,14 @@ object JwtUtil {
     }
 
     fun generateToken(userId: String, username: String, issuer: String, audience: String, isAdmin: Boolean = false): String {
-        log.info("Generating token for $username and expires at ${Date.from(Instant.now().plusSeconds(84000))} as Admin: $isAdmin")
+        log.info("Generating token for $username and expires at ${Date.from(Instant.now().plusSeconds(1800))} as Admin: $isAdmin")
 
         val rawJwt = JWT.create()
             .withAudience(audience)
             .withIssuer(issuer)
             .withClaim("username", username)
             .withSubject(userId)
-            .withExpiresAt(Date.from(Instant.now().plusSeconds(84000)))
+            .withExpiresAt(Date.from(Instant.now().plusSeconds(1800)))
 
         if(isAdmin)
             rawJwt.withClaim("permission", "Access to complete Api")

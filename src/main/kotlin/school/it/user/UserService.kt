@@ -16,17 +16,24 @@ class UserService (private val userRepository: UserRepository) {
         return userRepository.insert(user)
     }
 
-    fun getUserById(id: String): User {
-        return userRepository.findById(id)
+    fun getUserById(id: String): UserDto? {
+        val userDto = userRepository.findById(id)?.toResponseDto() ?: return null
+
+        userDto.totallyAnsweredQuestions = userRepository.getAnsweredIds(id)?.size ?: 0
+
+        return userDto
     }
 
     fun updateUser(user: User): Boolean {
         return userRepository.updateUser(user).modifiedCount == 1L
     }
 
+    fun getUsersForScoreboard(pageNumber: Int, pageSize: Int): List<User> {
+        return userRepository.getUsersForHighscore(pageNumber, pageSize)
+    }
 
     fun checkUserCredentials(login: Login): Boolean {
-        val found = userRepository.findByUsername(login.username) ?: return false
+        val found = userRepository.findByUsername(login.username.trim()) ?: return false
         return Helper.checkPass(login.password, found.password!!)
     }
 
@@ -54,5 +61,9 @@ class UserService (private val userRepository: UserRepository) {
 
     fun addAnsweredQuestionsToUser(userId: String, answerIds: List<String>): Boolean {
         return userRepository.addAnsweredIds(userId, answerIds).modifiedCount == 1L
+    }
+
+    fun deleteSessionToken(userId: String): Boolean {
+        return userRepository.deleteSessionToken(userId).modifiedCount == 1L
     }
 }

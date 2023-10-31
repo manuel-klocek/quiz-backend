@@ -55,7 +55,7 @@ fun Routing.routeQuiz(
 
             val score = quizService.calculatePoints(answers)
 
-            if(player.highscore!! < score) {
+            if(player!!.highscore!! < score) {
                 userService.updateUser(
                     User (
                         id = ObjectId(userId),

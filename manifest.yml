@@ -1,0 +1,13 @@
+applications:
+  - name: ((env))-wuewa-process
+    services:
+      - name: ((env))-wuewa-process-db
+    memory: ((memory))
+    path: target/wuewa-process-1.0-SNAPSHOT.jar
+    env:
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ } }'
+      SPRING_PROFILES_ACTIVE: cloud
+      SPRING_JPA_PROPERTIES_HIBERNATE_CONNECTION_PROVIDER_DISABLES_AUTOCOMMIT: false
+      PERSISTENCE_BACKEND_URL: ((persistenceBackendUrl))
+      PERSISTENCE_BACKEND_USER: ((persistenceBackendUser))
+      PERSISTENCE_BACKEND_PASSWORD: ((persistenceBackendPassword))
