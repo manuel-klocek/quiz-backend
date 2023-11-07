@@ -1,17 +1,19 @@
 package school.it.quiz
 
+import com.typesafe.config.ConfigFactory
+import io.ktor.server.config.tryGetString
 import mu.KotlinLogging
 import org.bson.Document
 import org.bson.types.ObjectId
+import org.json.JSONObject
 import org.litote.kmongo.KMongo
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import org.litote.kmongo.getCollection
+import school.it.helper.GetEnvVars
 
 class QuizRepository {
-
-    private val client = KMongo.createClient()
-    private val database = client.getDatabase("Quiz")
+    private val database = GetEnvVars.getMongoDbAsDb
     private val quizCollection = database.getCollection<Question>()
     private val log = KotlinLogging.logger {}
 
