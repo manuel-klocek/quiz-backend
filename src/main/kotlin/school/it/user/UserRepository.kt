@@ -1,19 +1,24 @@
 package school.it.user
 
 import com.mongodb.BasicDBObject
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
 import com.mongodb.MongoException
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.client.result.UpdateResult
+import com.typesafe.config.ConfigFactory
+import io.ktor.server.config.tryGetString
 import mu.KotlinLogging
 import org.bson.Document
 import org.bson.types.ObjectId
+import org.json.JSONObject
 import org.litote.kmongo.*
+import school.it.helper.GetEnvVars
 import kotlin.reflect.full.memberProperties
 
 class UserRepository {
-    private val client = KMongo.createClient()
-    private val database = client.getDatabase("Quiz")
+    private val database = GetEnvVars.getMongoDbAsDb
     private val userCollection = database.getCollection<User>()
     private val log = KotlinLogging.logger {}
 

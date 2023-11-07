@@ -1,7 +1,8 @@
 applications:
   - name: dev-quizme-backend
+    services:
+      - name: dev-quizme-backend-db
     memory: 1G
     path: build/libs/quiz-backend-all.jar
     env:
-      SPRING_PROFILES_ACTIVE: cloud
-      SPRING_JPA_PROPERTIES_HIBERNATE_CONNECTION_PROVIDER_DISABLES_AUTOCOMMIT: false
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ } }'
