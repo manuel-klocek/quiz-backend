@@ -1,18 +1,13 @@
 package school.it.user
 
 import com.mongodb.BasicDBObject
-import com.mongodb.ConnectionString
-import com.mongodb.MongoClientSettings
 import com.mongodb.MongoException
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.client.result.UpdateResult
-import com.typesafe.config.ConfigFactory
-import io.ktor.server.config.tryGetString
 import mu.KotlinLogging
 import org.bson.Document
 import org.bson.types.ObjectId
-import org.json.JSONObject
 import org.litote.kmongo.*
 import school.it.helper.GetEnvVars
 import kotlin.reflect.full.memberProperties
@@ -26,7 +21,7 @@ class UserRepository {
         userCollection.createIndex(Indexes.ascending(User::username.name), IndexOptions().unique(true))
         userCollection.createIndex(Indexes.descending(User::highscore.name), IndexOptions().unique(false))
 
-        val admin = User(type = UserType.ADMIN, username = "admin", password = "admin", mail = "admin.local@quiz.me")
+        val admin = User(type = UserType.ADMIN, username = "admin", password = "admin", mail = "admin.local@quiz.me", icon = "Avatar1")
 
         insert(admin)
     }
@@ -48,7 +43,7 @@ class UserRepository {
 
     fun getUsersForHighscore(pageNumber: Int, pageSize: Int): List<User> {
         val skip = (pageNumber - 1) * pageSize
-        return userCollection.find().hint(Indexes.descending(User::highscore.name)).skip(skip).limit(pageSize).toList()
+        return userCollection.find(User::type eq UserType.PLAYER).hint(Indexes.descending(User::highscore.name)).skip(skip).limit(pageSize).toList()
     }
 
     fun updateUser(user: User): UpdateResult {

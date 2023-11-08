@@ -33,7 +33,6 @@ fun Routing.routeUser(
     post("/api/user") {
         val userDto = call.receive<UserDto>()
 
-        //Make sure user can't set these values on request per api
         userDto.highscore = 0
         userDto.totallyAnsweredQuestions = 0
 
@@ -65,7 +64,11 @@ fun Routing.routeUser(
             val users = userService.getUsersForScoreboard(pageNumber, pageSize)
             val userDtos = mutableListOf<UserDto>()
 
-            users.forEach { userDtos.add(it.toResponseDto()) }
+            users.forEach {
+                val dto = it.toResponseDto()
+                dto.totallyAnsweredQuestions = it.answeredQuestionIds?.size ?: 0
+                userDtos.add(dto)
+            }
 
             call.respond(userDtos)
         }

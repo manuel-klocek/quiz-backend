@@ -22,7 +22,8 @@ data class User (
     val mail: String? = null,
     var highscore: Int? = null,
     var sessionToken: String? = null,
-    var answeredQuestionIds: List<String>? = null
+    var answeredQuestionIds: List<String>? = null,
+    var icon: String? = null
 )
 @Serializable
 data class UserDto(
@@ -31,7 +32,8 @@ data class UserDto(
     val password: String? = null,
     var highscore: Int? = null,
     var totallyAnsweredQuestions: Int? = null,
-    val mail: String
+    val mail: String,
+    val icon: String
 )
 
 @Serializable
@@ -45,7 +47,8 @@ fun UserDto.toUser(): User =
         id = returnIdOrNull(this.id),
         username = this.username.trim(),
         password = this.password,
-        mail = this.mail
+        mail = this.mail,
+        icon = this.icon
     )
 
 fun UserDto.toAdmin(): User =
@@ -54,7 +57,8 @@ fun UserDto.toAdmin(): User =
         username = this.username,
         password = this.password,
         type = UserType.ADMIN,
-        mail = this.mail
+        mail = this.mail,
+        icon = this.icon
     )
 
 fun User.encodePass() {
@@ -76,7 +80,8 @@ fun User.toResponseDto() =
         id = this.id.toString(),
         username = this.username!!,
         highscore = this.highscore,
-        mail = this.mail ?: ""
+        mail = this.mail ?: "",
+        icon = this.icon ?: ""
     )
 
 private fun returnIdOrNull(id: String?): ObjectId? {
