@@ -9,7 +9,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
 import org.bson.types.ObjectId
-import school.it.helper.Helper
 import school.it.user.User
 import school.it.user.UserService
 
@@ -59,7 +58,8 @@ fun Routing.routeQuiz(
                 userService.updateUser(
                     User (
                         id = ObjectId(userId),
-                        highscore = score
+                        highscore = score,
+                        icon = player.icon!!
                     )
                 )
             }

@@ -54,6 +54,6 @@ object JwtUtil {
             return false
         }
 
-        return jwt.expiresAtAsInstant > Instant.now()
+        return jwt.expiresAtAsInstant > Instant.now().plusSeconds(300)
     }
 }
