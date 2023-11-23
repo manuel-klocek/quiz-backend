@@ -21,27 +21,7 @@ fun Routing.routeQuiz(
     quizCacheService: QuizCacheService
 ) {
     authenticate("jwt-player") {
-        //get Questions FIXME delete
         get("/api/questions") {
-            val userId = call.principal<JWTPrincipal>()!!.payload.subject
-            val categoryId = call.parameters["category"]
-
-            if(categoryId == null) {
-                log.error("CategoryId must be provided")
-                call.respond(HttpStatusCode.BadRequest, "Category must be provided")
-                return@get
-            }
-
-            val answeredIds = userService.getAnsweredQuestionIds(userId)
-            val questions = quizService.getQuestionsForCategoryExcept(answeredIds, categoryId)
-
-            val questionDtos = mutableListOf<QuestionDto>()
-            questions.forEach { questionDtos.add(it.toDto()) }
-
-            call.respond(HttpStatusCode.OK, questionDtos)
-        }
-
-        get("/api/questions/v2") {
             val userId = call.principal<JWTPrincipal>()!!.payload.subject
             val categoryId = call.parameters["category"]
 
@@ -62,31 +42,6 @@ fun Routing.routeQuiz(
             val categories = quizService.getCategories()
 
             call.respond(categories)
-        }
-
-        //send answers to Backend FIXME delete
-        post("/api/answers") {
-            val userId = call.principal<JWTPrincipal>()!!.payload.subject
-            val answers = call.receive<List<QuestionAnswer>>()
-            val player = userService.getUserById(userId)
-
-            val score = quizService.calculatePoints(answers)
-
-            if(player!!.highscore!! < score) {
-                userService.updateUser(
-                    User (
-                        id = ObjectId(userId),
-                        highscore = score,
-                        icon = player.icon
-                    )
-                )
-            }
-
-            val answerIds = mutableListOf<String>()
-            answers.forEach { answerIds.add(it.questionId) }
-            userService.addAnsweredQuestionsToUser(userId, answerIds)
-
-            call.respond(HttpStatusCode.OK, hashMapOf("score" to score, "highscore" to player.highscore))
         }
 
         post("/api/answer") {
