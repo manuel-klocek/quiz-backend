@@ -46,6 +46,10 @@ class UserRepository {
         return userCollection.find(User::type eq UserType.PLAYER).hint(Indexes.descending(User::highscore.name)).skip(skip).limit(pageSize).toList()
     }
 
+    fun getAllUsersForHighscore(): List<User> {
+        return userCollection.find(User::type eq UserType.PLAYER).hint(Indexes.descending(User::highscore.name)).toList()
+    }
+
     fun updateUser(user: User): UpdateResult {
         user.modify()
         val updateFields = BasicDBObject()
@@ -87,9 +91,12 @@ class UserRepository {
         user.modify()
         if(user.answeredQuestionIds.isNullOrEmpty())
             user.answeredQuestionIds = answerIds
-        else
-            user.answeredQuestionIds?.toMutableList()?.addAll(answerIds)
-        return userCollection.updateOne(User::id eq ObjectId(userId), user)
+        else {
+            val list = answerIds.toMutableList()
+            list.addAll(user.answeredQuestionIds!!)
+            user.answeredQuestionIds = list
+        }
+        return userCollection.updateOne(User::id eq user.id, user)
     }
 
     fun deleteSessionToken(userId: String): UpdateResult {

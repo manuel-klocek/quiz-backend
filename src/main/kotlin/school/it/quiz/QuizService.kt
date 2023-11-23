@@ -148,7 +148,15 @@ class QuizService(
         return quizRepository.getQuestionsForCategoryExcept(categoryId, answeredIds, amount)
     }
 
+    fun getQuestionsSecureForCategoryExcept(answeredIds: List<String>?, categoryId: String, amount: Int = 10): List<QuestionSecure> {
+        return quizRepository.getQuestionsSecureForCategoryExcept(categoryId, answeredIds, amount)
+    }
+
     fun getCategories(): List<Category> {
         return quizRepository.getCategories()
+    }
+
+    fun getAnswerFor(questionId: String): String {
+        return quizRepository.getQuestion(questionId)?.correctAnswer ?: ""
     }
 }

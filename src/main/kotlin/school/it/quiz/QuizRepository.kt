@@ -1,12 +1,8 @@
 package school.it.quiz
 
-import com.typesafe.config.ConfigFactory
-import io.ktor.server.config.tryGetString
 import mu.KotlinLogging
 import org.bson.Document
 import org.bson.types.ObjectId
-import org.json.JSONObject
-import org.litote.kmongo.KMongo
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import org.litote.kmongo.getCollection
@@ -16,6 +12,10 @@ class QuizRepository {
     private val database = GetEnvVars.getMongoDbAsDb
     private val quizCollection = database.getCollection<Question>()
     private val log = KotlinLogging.logger {}
+
+    fun getQuestion(questionId: String): Question? {
+        return quizCollection.findOne(Question::id eq ObjectId(questionId))
+    }
 
     fun getQuestions(answers: List<QuestionAnswer>): List<Question> {
         val questions = mutableListOf<Question>()
@@ -46,6 +46,19 @@ class QuizRepository {
         filter.append("categoryId", categoryId)
 
         return quizCollection.find(filter).toList().shuffled().take(amount)
+    }
+
+    fun getQuestionsSecureForCategoryExcept(categoryId: String, answeredIds: List<String>? = listOf(), amount: Int): List<QuestionSecure> {
+        var filter = Document()
+        if(!answeredIds.isNullOrEmpty())
+            filter = Document("_id", Document("\$nin", answeredIds))
+
+        filter.append("categoryId", categoryId)
+
+        val secureQuestions = mutableListOf<QuestionSecure>()
+        quizCollection.find(filter).toList().shuffled().take(amount).forEach { secureQuestions.add(it.toSecure()) }
+
+        return secureQuestions
     }
 
     fun getQuestionCount(): Long {

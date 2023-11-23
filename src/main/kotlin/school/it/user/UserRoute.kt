@@ -59,9 +59,15 @@ fun Routing.routeUser(
         get("/api/scoreboard") {
 
             val pageNumber = (call.parameters["pageNumber"] ?: "0").toInt()
-            val pageSize = (call.parameters["pageSize"] ?: "10").toInt()
+            val pageSize = call.parameters["pageSize"]?.toInt()
 
-            val users = userService.getUsersForScoreboard(pageNumber, pageSize)
+            val users: List<User>
+            if(pageSize != null)
+                users = userService.getUsersForScoreboard(pageNumber, pageSize)
+            else {
+                users = userService.getUsersForScoreboard()
+            }
+
             val userDtos = mutableListOf<UserDto>()
 
             users.forEach {

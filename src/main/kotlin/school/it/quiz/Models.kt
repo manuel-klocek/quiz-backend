@@ -18,6 +18,33 @@ data class Question(
 )
 
 @Serializable
+data class QuestionSecure(
+    val id: String,
+    val categoryId: String,
+    val category: String,
+    val type: String,
+    val difficulty: String,
+    val question: String,
+    val answers: List<String>
+)
+
+fun Question.toSecure(): QuestionSecure {
+    val allAnswers = incorrectAnswers.toMutableList()
+    allAnswers.add(correctAnswer)
+
+    return QuestionSecure(
+        id = id.toString(),
+        categoryId = categoryId,
+        category = category,
+        type = type,
+        difficulty = difficulty,
+        question = question,
+        answers = allAnswers
+    )
+}
+
+
+@Serializable
 data class QuestionDto(
     val id: String? = null,
     val categoryId: String,
@@ -33,6 +60,12 @@ data class QuestionDto(
 data class QuestionAnswer(
     val questionId: String,
     val correctAnswered: Boolean
+)
+
+@Serializable
+data class QuestionAnswerSecure(
+    val questionId: String,
+    val takenAnswer: String
 )
 
 fun Question.toDto() =
