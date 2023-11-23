@@ -69,4 +69,8 @@ class UserService (private val userRepository: UserRepository) {
     fun deleteSessionToken(userId: String): Boolean {
         return userRepository.deleteSessionToken(userId).modifiedCount == 1L
     }
+
+    fun deleteUser(userId: String): Boolean {
+        return userRepository.deleteUser(userId).deletedCount == 1L
+    }
 }

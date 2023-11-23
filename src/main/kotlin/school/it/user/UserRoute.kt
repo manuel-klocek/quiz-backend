@@ -103,6 +103,17 @@ fun Routing.routeUser(
             call.respond(HttpStatusCode.Accepted)
         }
 
+        delete("/api/user") {
+            val requesterId = call.principal<JWTPrincipal>()!!.payload.subject
+
+            val deleted = userService.deleteUser(requesterId)
+
+            if(deleted)
+                call.respond(HttpStatusCode.OK)
+            else
+                call.respond(HttpStatusCode.BadRequest)
+        }
+
         delete("/api/logout") {
             val userId = call.principal<JWTPrincipal>()!!.payload.subject
 

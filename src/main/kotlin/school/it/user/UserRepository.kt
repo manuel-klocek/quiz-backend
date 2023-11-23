@@ -4,6 +4,7 @@ import com.mongodb.BasicDBObject
 import com.mongodb.MongoException
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
+import com.mongodb.client.result.DeleteResult
 import com.mongodb.client.result.UpdateResult
 import mu.KotlinLogging
 import org.bson.Document
@@ -102,5 +103,9 @@ class UserRepository {
     fun deleteSessionToken(userId: String): UpdateResult {
         val updateDoc = Document("\$set", Document(User::sessionToken.name, ""))
         return userCollection.updateOne(User::id eq ObjectId(userId), updateDoc)
+    }
+
+    fun deleteUser(userId: String): DeleteResult {
+        return userCollection.deleteOne(User::id eq ObjectId(userId))
     }
 }
