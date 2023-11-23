@@ -9,6 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
 import org.bson.types.ObjectId
+import school.it.quiz.cache.QuizCacheService
 import school.it.user.User
 import school.it.user.UserService
 
@@ -16,10 +17,10 @@ private val log = KotlinLogging.logger {}
 
 fun Routing.routeQuiz(
     quizService: QuizService,
-    userService: UserService
+    userService: UserService,
+    quizCacheService: QuizCacheService
 ) {
     authenticate("jwt-player") {
-        //get Questions
         get("/api/questions") {
             val userId = call.principal<JWTPrincipal>()!!.payload.subject
             val categoryId = call.parameters["category"]
@@ -31,12 +32,9 @@ fun Routing.routeQuiz(
             }
 
             val answeredIds = userService.getAnsweredQuestionIds(userId)
-            val questions = quizService.getQuestionsForCategoryExcept(answeredIds, categoryId)
+            val questions = quizService.getQuestionsSecureForCategoryExcept(answeredIds, categoryId)
 
-            val questionDtos = mutableListOf<QuestionDto>()
-            questions.forEach { questionDtos.add(it.toDto()) }
-
-            call.respond(HttpStatusCode.OK, questionDtos)
+            call.respond(HttpStatusCode.OK, questions)
         }
 
         //get available categories
@@ -46,20 +44,29 @@ fun Routing.routeQuiz(
             call.respond(categories)
         }
 
-        //send answers to Backend
-        post("/api/answers") {
+        post("/api/answer") {
             val userId = call.principal<JWTPrincipal>()!!.payload.subject
-            val answers = call.receive<List<QuestionAnswer>>()
+            val answer = call.receive<QuestionAnswerSecure>()
+
+            quizCacheService.cacheAnswerFor(userId, answer)
+            val correctAnswer = quizService.getAnswerFor(answer.questionId)
+
+            call.respond(HttpStatusCode.Accepted, hashMapOf("correctAnswer" to correctAnswer))
+        }
+
+        post("/api/finish-quiz") {
+            val userId = call.principal<JWTPrincipal>()!!.payload.subject
             val player = userService.getUserById(userId)
 
+            val answers = quizCacheService.getQuestionsAnswered(userId)
             val score = quizService.calculatePoints(answers)
 
             if(player!!.highscore!! < score) {
                 userService.updateUser(
-                    User (
+                    User(
                         id = ObjectId(userId),
                         highscore = score,
-                        icon = player.icon!!
+                        icon = player.icon
                     )
                 )
             }
@@ -67,6 +74,8 @@ fun Routing.routeQuiz(
             val answerIds = mutableListOf<String>()
             answers.forEach { answerIds.add(it.questionId) }
             userService.addAnsweredQuestionsToUser(userId, answerIds)
+
+            quizCacheService.clearCacheFor(userId)
 
             call.respond(HttpStatusCode.OK, hashMapOf("score" to score, "highscore" to player.highscore))
         }

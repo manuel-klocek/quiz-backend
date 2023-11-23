@@ -28,8 +28,11 @@ class UserService (private val userRepository: UserRepository) {
         return userRepository.updateUser(user).modifiedCount == 1L
     }
 
-    fun getUsersForScoreboard(pageNumber: Int, pageSize: Int): List<User> {
-        return userRepository.getUsersForHighscore(pageNumber, pageSize)
+    fun getUsersForScoreboard(pageNumber: Int? = null, pageSize: Int? = null): List<User> {
+        if(pageNumber != null && pageSize != null)
+            return userRepository.getUsersForHighscore(pageNumber, pageSize)
+
+        return userRepository.getAllUsersForHighscore()
     }
 
     fun checkUserCredentials(login: Login): Boolean {
@@ -65,5 +68,9 @@ class UserService (private val userRepository: UserRepository) {
 
     fun deleteSessionToken(userId: String): Boolean {
         return userRepository.deleteSessionToken(userId).modifiedCount == 1L
+    }
+
+    fun deleteUser(userId: String): Boolean {
+        return userRepository.deleteUser(userId).deletedCount == 1L
     }
 }
