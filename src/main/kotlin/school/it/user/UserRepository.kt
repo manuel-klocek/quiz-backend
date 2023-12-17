@@ -59,7 +59,7 @@ class UserRepository {
         User::class.memberProperties.forEach {
             val prop = it.name
             val value = it.get(user)
-            if(value != null && !propsToBeSkipped.contains(prop)) {
+            if(value != null && value != "" && !propsToBeSkipped.contains(prop)) {
                 log.info("Updating User: ${user.id}, with: $prop = $value")
                 updateFields.append(prop, value)
             }
