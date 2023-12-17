@@ -4,7 +4,7 @@
 ## Inhaltsverzeichnis
 
 1. [Einführung](#Einführung)  
-   1.1. [Eidesstattliche Erklärung](#Eidesstattliche_Erklärung)  
+   1.1. [Eidesstattliche Erklärung](#Eidesstattliche-Erklärung)  
    1.2. [Vorwort](#Vorwort)
 2. [Zielsetzung der Projektarbeit](#Zielsetzung der Projektarbeit)  
    1.1. [Erweiterung der Kenntnisse](#Erweiterung der Kenntnisse)  
