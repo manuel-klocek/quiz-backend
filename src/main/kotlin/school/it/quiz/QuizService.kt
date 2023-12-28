@@ -9,9 +9,9 @@ import io.ktor.utils.io.errors.IOException
 import kotlinx.serialization.json.*
 import school.it.helper.Helper
 import java.time.Instant
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.bson.Document
 
@@ -27,7 +27,7 @@ class QuizService(
     )
 
     init {
-        runBlocking {
+        GlobalScope.launch {
             updateDb()
         }
     }
@@ -125,9 +125,11 @@ class QuizService(
                     "2" -> throw IOException("Invalid parameter in request url ${response.request.url}")
                     "3" -> throw TokenExpiredException("Token expired", Instant.now())
                     "4" -> throw TokenExpiredException("All questions for Token used", Instant.now())
-                    else -> throw IOException("Status Code is not handled!")
+                    "5" -> throw IOException("IP Blocker -> Requests can only be made every 5 seconds. (Source: https://opentdb.com/api_config.php @2023-11-23)")
+                    else -> throw IOException("Status Code is not handled! Statuscode: ${body["response_code"]}")
                 }
             })
+            delay(5000)
         }
         return foundQuestions
     }

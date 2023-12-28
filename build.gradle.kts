@@ -43,7 +43,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("io.ktor:ktor-server-cors-jvm:2.3.5")
     implementation("com.typesafe:config:1.4.1")
-    implementation(group = "org.json", name = "json", version = "20210307")
+    implementation(group = "org.json", name = "json", version = "20230227")
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.0")
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
