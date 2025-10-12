@@ -9,6 +9,8 @@ import io.netty.handler.codec.http.HttpServerCodec
 import school.it.plugins.*
 import school.it.quiz.QuizRepository
 import school.it.quiz.QuizService
+import school.it.quiz.cache.QuizCacheRepository
+import school.it.quiz.cache.QuizCacheService
 import school.it.quiz.routeQuiz
 import school.it.user.UserRepository
 import school.it.user.UserService
@@ -40,12 +42,14 @@ fun Application.configure() {
     val userService = UserService(userRepository)
     val quizRepository = QuizRepository()
     val quizService = QuizService(quizRepository)
+    val quizCacheRepository = QuizCacheRepository()
+    val quizCacheService = QuizCacheService(quizCacheRepository, quizRepository)
 
     configureSecurity()
     configureSerialization()
 
     routing {
         routeUser(userService)
-        routeQuiz(quizService, userService)
+        routeQuiz(quizService, userService, quizCacheService)
     }
 }
