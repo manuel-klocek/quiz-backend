@@ -10,6 +10,7 @@ import kotlinx.serialization.json.*
 import school.it.helper.Helper
 import java.time.Instant
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -128,7 +129,9 @@ class QuizService(
                     else -> throw IOException("Status Code is not handled!")
                 }
             })
+            delay(5000)
         }
+
         return foundQuestions
     }
 
