@@ -9,7 +9,7 @@ import io.ktor.utils.io.errors.IOException
 import kotlinx.serialization.json.*
 import school.it.helper.Helper
 import java.time.Instant
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
@@ -131,6 +131,7 @@ class QuizService(
             })
             delay(5000)
         }
+
         return foundQuestions
     }
 
